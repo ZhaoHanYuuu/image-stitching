@@ -11,8 +11,12 @@ import mysift
 print("==============================")
 print("DuYu 2019K8009929015")
 print("DIP2022: image stitching")
-img1_path = "./smaller_imgs/left1.jpg"
-img2_path = "./smaller_imgs/right1.jpg"
+img_seq = input("Enter the image sequence:")
+while int(img_seq) < 1 or int(img_seq) > 4:
+    print("Error: image sequence should be 1,2,3,4. ")
+    img_seq = input("Enter the image sequence:")
+img1_path = "./smaller_imgs/left" + img_seq + ".jpg"
+img2_path = "./smaller_imgs/right" + img_seq + ".jpg"
 print(f'Deal with {img1_path} and {img2_path} ...')
 sift_test = 1
 image_stitching = 2
@@ -26,9 +30,9 @@ if model is image_stitching:
 
     print("Computing keypoints and descriptors ...")
     # 创建SIFT对象并获取关键点和描述子
-    sift = mysift.MySift()
+    # sift = mysift.MySift()
     # 如果调用库函数：
-    # sift = cv2.SIFT_create()
+    sift = cv2.SIFT_create()
     # 获取关键点和特征描述符
     left_kp, left_feature = sift.detectAndCompute(left, None)
     right_kp, right_feature = sift.detectAndCompute(right, None)
@@ -46,12 +50,13 @@ if model is image_stitching:
     good_matches = []
     # 应用比例测试选择要使用的匹配结果
     for m1, m2 in feature_match:
-        if m1.distance < 0.85*m2.distance:
+        if m1.distance < 0.75*m2.distance:
             good_points.append((m1.queryIdx, m1.trainIdx))
             good_matches.append([m1])
     match_img = cv2.drawMatchesKnn(left, left_kp, right, right_kp, good_matches, None, flags=2)
-    cv2.imwrite('./middle_res/before.jpg', match_img)
-    print("    matching image is ./middle_res/before.jpg")
+    middle_res_path = "./middle_res/before" + img_seq + ".jpg"
+    cv2.imwrite(middle_res_path, match_img)
+    print(f"    matching image is {middle_res_path}")
 
     # 根据筛选出的点重新确定关键点坐标
     left_good_kp = np.float32([left_kp[i].pt for (i, _) in good_points])
@@ -93,8 +98,9 @@ if model is image_stitching:
     rows, cols = np.where(mix_img[:, :, 0] != 0)
     output_img = mix_img[min(rows):max(rows), min(cols):max(cols), :]
     # 显示输出图像
-    cv2.imwrite('./result/output.jpg', output_img)  # 写入文件
-    print("The final result is ./result/output.jpg")
+    result_path = "./result/output" + img_seq + ".jpg"
+    cv2.imwrite(result_path, output_img)  # 写入文件
+    print(f"The final result is {result_path}")
 
 # 测试SIFT特征点检测是否正常
 elif model is sift_test:
