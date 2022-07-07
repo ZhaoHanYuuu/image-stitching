@@ -90,7 +90,6 @@ def keypoint_unique(keypoint1, keypoint2):
 
 # 计算组数与层数，尺度。从存储方式中解析出组数，层数，尺度
 def unpackOctave(keypoint):
-    # TODO
     octave = keypoint.octave & 255
     layer = (keypoint.octave >> 8) & 255
     if octave == 255:
@@ -147,17 +146,22 @@ class MySift:
                 kps_or = self.calcOrientationHist(keypoint, local_index, kp[0], gaussian_imgs)
                 # 将这组关键点加入
                 for kp_or in kps_or:
+                    if self.double_img_size:
+                        # 将关键点从基础图像坐标转换为输入图像坐标，通过将相关属性减半实现
+                        kp_or.pt = 0.5 * np.array(kp_or.pt)
+                        kp_or.size *= 0.5
+                        kp_or.octave = (kp_or.octave & ~255) | ((kp_or.octave - 1) & 255)
                     keypoints.append(kp_or)
             # print("finish extrema")
         # 对重复项进行排序和删除
         keypoints = removeDuplicateSorted(keypoints)
 
-        if self.double_img_size:
-            # 将关键点从基础图像坐标转换为输入图像坐标，通过将相关属性减半实现
-            for keypoint in keypoints:
-                keypoint.pt = 0.5 * np.array(keypoint.pt)
-                keypoint.size *= 0.5
-                keypoint.octave = (keypoint.octave & ~255) | ((keypoint.octave - 1) & 255)
+        # if self.double_img_size:
+        #     # 将关键点从基础图像坐标转换为输入图像坐标，通过将相关属性减半实现
+        #     for keypoint in keypoints:
+        #         keypoint.pt = 0.5 * np.array(keypoint.pt)
+        #         keypoint.size *= 0.5
+        #         keypoint.octave = (keypoint.octave & ~255) | ((keypoint.octave - 1) & 255)
         # 生成描述符
         descriptors = self.calcSIFTDescriptors(keypoints, gaussian_imgs)
         # descriptors = np.array(descriptors)
@@ -252,7 +256,7 @@ class MySift:
                 img2 = dog_octave_img[i_interval + 1]
                 img3 = dog_octave_img[i_interval + 2]
                 # 边缘区域5个像素范围不被用来检测关键点
-                print("      finding extrema ...")
+                print("            finding extrema ...")
                 for i in range(self.image_border_width, img1.shape[0] - self.image_border_width):
                     for j in range(self.image_border_width, img1.shape[1] - self.image_border_width):
                         if self.isScaleSpaceExtrema(img1, img2, img3, i, j):
