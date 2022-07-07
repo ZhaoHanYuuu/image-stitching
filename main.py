@@ -30,9 +30,9 @@ if model is image_stitching:
 
     print("Computing keypoints and descriptors ...")
     # 创建SIFT对象并获取关键点和描述子
-    # sift = mysift.MySift()
+    sift = mysift.MySift()
     # 如果调用库函数：
-    sift = cv2.SIFT_create()
+    # sift = cv2.SIFT_create()
     # 获取关键点和特征描述符
     left_kp, left_feature = sift.detectAndCompute(left, None)
     right_kp, right_feature = sift.detectAndCompute(right, None)

@@ -93,14 +93,11 @@ def unpackOctave(keypoint):
     # TODO
     octave = keypoint.octave & 255
     layer = (keypoint.octave >> 8) & 255
-    if octave >= 128:
-        print(f'octave before is {octave}')
-        octave = -128 | octave
-        print(f'octave before is {octave}')
-    if octave >= 0:
-        scale = 1 / (1 << octave)
+    if octave == 255:
+        octave = -1
+        scale = 2
     else:
-        scale = 1 << -octave
+        scale = 1 / (1 << octave)
     return octave, layer, scale
 
 
