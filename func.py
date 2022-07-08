@@ -6,6 +6,8 @@ duyu19@mails.ucas.ac.cn
 """
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from fontTools.misc.py23 import xrange
 
 
 def rgb2hsv(rgb_img):
@@ -114,6 +116,7 @@ def hsv2rgb(hsv_img):
 
 def computeV(hsv_img):
     h, s, v = cv2.split(hsv_img)
+    v = np.asarray(v, dtype="float32")
     return np.sum(v)
     # return np.mean(v)
 
@@ -208,3 +211,90 @@ def get_new_img(img_org, infer_map):
     org2infer_map_g = get_finalmap(org_g_map, infer_map[1])
     org2infer_map_r = get_finalmap(org_r_map, infer_map[2])
     return get_newimg(img_org, [org2infer_map_b, org2infer_map_g, org2infer_map_r])
+
+
+def style_transfer(image, ref):
+    out = np.zeros_like(ref)
+    _, _, ch = image.shape
+    for i in range(ch):
+        print(i)
+        hist_img, _ = np.histogram(image[:, :, i], 256)
+        hist_ref, _ = np.histogram(ref[:, :, i], 256)
+        cdf_img = np.cumsum(hist_img)
+        cdf_ref = np.cumsum(hist_ref)
+
+        for j in range(256):
+            tmp = abs(cdf_img[j] - cdf_ref)
+            tmp = tmp.tolist()
+            idx = tmp.index(min(tmp))  # 找出tmp中最小的数，得到这个数的索引
+            out[:, :, i][ref[:, :, i] == j] = idx
+    return out
+
+
+def light(img, ref):
+    out = np.zeros_like(img)
+    _, _, colorChannel = img.shape
+    for i in range(colorChannel):
+        print(i)
+        hist_img, _ = np.histogram(img[:, :, i], 256)  # get the histogram
+        hist_ref, _ = np.histogram(ref[:, :, i], 256)
+        cdf_img = np.cumsum(hist_img)  # get the accumulative histogram
+        cdf_ref = np.cumsum(hist_ref)
+
+        for j in range(256):
+            tmp = abs(cdf_img[j] - cdf_ref)
+            tmp = tmp.tolist()
+            idx = tmp.index(min(tmp))  # find the smallest number in tmp, get the index of this number
+            out[:, :, i][img[:, :, i] == j] = idx
+
+    return out
+
+
+def eqhist(histarray):
+    farr = np.zeros(256,dtype= np.uint16)
+    for i in range(256):
+        farr[i] = np.sum(histarray[:i])*255
+        if farr[i] > 255: farr[i] = 255
+    return farr
+
+
+def deal_light(img, ref):
+    # imlist = []
+    # imlist.append(img)
+    # imlist.append(ref)
+    srcIm = ref
+    targIm = img
+    srcIm.show()
+    # targIm.show()
+
+    srcbuf = np.array(srcIm)
+    targbuf = np.array(targIm)
+
+    # 显示原始直方图
+    plt.subplot(2, 2, 1)
+    srchist, bins, patche = plt.hist(srcbuf.flatten(), 256, normed = True)
+    plt.subplot(2, 2, 3)
+    targhist, bins, patche = plt.hist(targbuf.flatten(), 256, normed = True)
+
+    # 先做直方图均衡
+    resSrchist = eqhist(srchist)
+    restarghist = eqhist(targhist)
+
+    # 求匹配的映射关系序列
+    MapArray = np.zeros(256,dtype= np.uint8)
+    for x in xrange(256):
+        MapArray[restarghist[x]] = x
+
+    tmp = MapArray[0]
+    for x in xrange(1,256):
+        if MapArray[x] != 0:
+            tmp = MapArray[x]
+        else:
+            MapArray[x] = tmp
+
+    # 执行匹配
+    outIm = srcIm.point(lambda i: MapArray[resSrchist[i]])
+    plt.subplot(2, 2, 2)
+    plt.hist(np.array(outIm).flatten(), 256, normed = True)
+
+    return outIm
