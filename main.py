@@ -123,7 +123,8 @@ if model is image_stitching:
     # cv2.imwrite("check.jpg", right_mask_img)  # 写入文件
     zero_test = np.nonzero(right_mask_img)
     min_index = zero_test[0][0]
-    offset = (left_width - min_index) * 0.2
+    row, col = np.where(right_mask_img[:, :, 0] != 0)
+    offset = (left_width - max(col)) * 0.2
     offset = int(offset)
     print(offset)
     barrier = left_width - offset
