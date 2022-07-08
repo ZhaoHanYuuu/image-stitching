@@ -7,6 +7,7 @@ duyu19@mails.ucas.ac.cn
 import numpy as np
 import cv2
 import mysift
+import func
 
 print("==============================")
 print("DuYu 2019K8009929015")
@@ -30,9 +31,9 @@ if model is image_stitching:
 
     print("Computing keypoints and descriptors ...")
     # 创建SIFT对象并获取关键点和描述子
-    sift = mysift.MySift()
+    # sift = mysift.MySift()
     # 如果调用库函数：
-    # sift = cv2.SIFT_create()
+    sift = cv2.SIFT_create()
     # 获取关键点和特征描述符
     left_kp, left_feature = sift.detectAndCompute(left, None)
     right_kp, right_feature = sift.detectAndCompute(right, None)
@@ -85,6 +86,23 @@ if model is image_stitching:
     left_mask_img[0:left_height, 0:left_width, :] = left
     left_mask_img = left_mask_img * left_mask
     # 右侧图片及其掩码
+    # right_hsv = func.rgb2hsv(right)
+    right_hsv = cv2.cvtColor(right, cv2.COLOR_BGR2HSV)
+    right_v = func.computeV(right_hsv)
+    # left_hsv = func.rgb2hsv(left)
+    left_hsv = cv2.cvtColor(left, cv2.COLOR_BGR2HSV)
+    left_v = func.computeV(left_hsv)
+    bright_k = left_v / right_v
+    print(bright_k)
+    h, s, v = cv2.split(right_hsv)
+    v = np.asarray(v, dtype="float32")
+    v = v / bright_k
+    v_new = np.round(v)
+    v_new = np.where(v_new > 255, 255, v_new)
+    v_new = np.where(v_new < 0, 0, v_new)
+    v_new = np.asarray(v_new, dtype="uint8")
+    right_hsv = cv2.merge([h, s, v_new])
+    right = cv2.cvtColor(right_hsv, cv2.COLOR_HSV2BGR)
     mask2 = np.zeros((mix_height, mix_width))
     mask2[:, barrier - offset:barrier + offset] = np.tile(np.linspace(0, 1, 2 * offset), (mix_height, 1))
     mask2[:, barrier + offset:] = 1
@@ -113,3 +131,4 @@ elif model is sift_test:
     cv2.waitKey(0)
 
 print("==============================")
+
