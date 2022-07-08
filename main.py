@@ -87,15 +87,15 @@ if model is image_stitching:
     # left_mask_img[0:left_height, 0:left_width, :] = left
     # left_mask_img = left_mask_img * left_mask
     # 右侧图片及其掩码
-    # right_hsv = func.rgb2hsv(right)
-    # right_hsv = cv2.cvtColor(right, cv2.COLOR_BGR2HSV)
-    # right_v = func.computeV(right_hsv)
-    # # left_hsv = func.rgb2hsv(left)
-    # left_hsv = cv2.cvtColor(left, cv2.COLOR_BGR2HSV)
-    # left_v = func.computeV(left_hsv)
-    # bright_k = left_v / right_v
+    right_hsv = func.rgb2hsv(right)
+    right_hsv = cv2.cvtColor(right, cv2.COLOR_BGR2HSV)
+    right_v = func.computeV(right_hsv)
+    # left_hsv = func.rgb2hsv(left)
+    left_hsv = cv2.cvtColor(left, cv2.COLOR_BGR2HSV)
+    left_v = func.computeV(left_hsv)
+    bright_k = left_v / right_v
     # # bright_k = (bright_k - 1) / 2 + 1
-    # print(bright_k)
+    print(f"k is {bright_k}")
     # h, s, v = cv2.split(right_hsv)
     # v = np.asarray(v, dtype="float32")
     # v = v / bright_k
@@ -123,8 +123,17 @@ if model is image_stitching:
     # cv2.imwrite("check.jpg", right_mask_img)  # 写入文件
     zero_test = np.nonzero(right_mask_img)
     min_index = zero_test[0][0]
-    row, col = np.where(right_mask_img[:, :, 0] != 0)
-    offset = (left_width - max(col)) * 0.2
+    row, col = np.where(right_mask_img[:, :, 0] == 0)
+    print(max(col))
+    offset = 600
+    if 0.95 < bright_k < 1.05:
+        offset = 40
+    elif max(col) > (left_width - 400):
+        zero_test = np.nonzero(right_mask_img)
+        min_index = zero_test[0][0]
+        offset = (left_width - min_index) * 0.15
+    else:
+        offset = (left_width - max(col)) * 0.2 + 1
     offset = int(offset)
     print(offset)
     barrier = left_width - offset

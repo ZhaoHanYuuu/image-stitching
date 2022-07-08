@@ -116,9 +116,7 @@ def hsv2rgb(hsv_img):
 
 def computeV(hsv_img):
     h, s, v = cv2.split(hsv_img)
-    v = np.asarray(v, dtype="float32")
     return np.sum(v)
-    # return np.mean(v)
 
 
 def get_map(Hist):
