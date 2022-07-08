@@ -76,16 +76,16 @@ if model is image_stitching:
     # 计算左侧图片及其掩码
     left_mask_img = np.zeros((mix_height, mix_width, 3))
     # 过渡区域大小设置为20
-    offset = 600  # smoothing window size / 2
-    barrier = left_width - offset
-    mask = np.zeros((mix_height, mix_width))
-    # 过渡区域
-    mask[:, barrier - offset:barrier + offset] = np.tile(np.linspace(1, 0, 2 * offset), (mix_height, 1))
-    mask[:, :barrier - offset] = 1
-    # 将掩码变成 3-通道的
-    left_mask = np.stack((mask, mask, mask), axis=2)
-    left_mask_img[0:left_height, 0:left_width, :] = left
-    left_mask_img = left_mask_img * left_mask
+    # offset = 600  # smoothing window size / 2
+    # barrier = left_width - offset
+    # mask = np.zeros((mix_height, mix_width))
+    # # 过渡区域
+    # mask[:, barrier - offset:barrier + offset] = np.tile(np.linspace(1, 0, 2 * offset), (mix_height, 1))
+    # mask[:, :barrier - offset] = 1
+    # # 将掩码变成 3-通道的
+    # left_mask = np.stack((mask, mask, mask), axis=2)
+    # left_mask_img[0:left_height, 0:left_width, :] = left
+    # left_mask_img = left_mask_img * left_mask
     # 右侧图片及其掩码
     # right_hsv = func.rgb2hsv(right)
     # right_hsv = cv2.cvtColor(right, cv2.COLOR_BGR2HSV)
@@ -112,13 +112,38 @@ if model is image_stitching:
     # right = func.style_transfer(right, left)
 
     mask2 = np.zeros((mix_height, mix_width))
+    # mask2[:, barrier - offset:barrier + offset] = np.tile(np.linspace(0, 1, 2 * offset), (mix_height, 1))
+    # mask2[:, barrier + offset:] = 1
+    # right_mask = np.stack((mask2, mask2, mask2), axis=2)
+
+    # 透视变换
+    # right_mask_img = cv2.warpPerspective(right, H, (mix_width, mix_height)) * right_mask
+    right_mask_img = cv2.warpPerspective(right, H, (mix_width, mix_height))
+    # cv2.imshow("11", right_mask_img)
+    # cv2.imwrite("check.jpg", right_mask_img)  # 写入文件
+    zero_test = np.nonzero(right_mask_img)
+    min_index = zero_test[0][0]
+    offset = (left_width - min_index) * 0.2
+    offset = int(offset)
+    print(offset)
+    barrier = left_width - offset
+    mask = np.zeros((mix_height, mix_width))
+    # 过渡区域
+    mask[:, barrier - offset:barrier + offset] = np.tile(np.linspace(1, 0, 2 * offset), (mix_height, 1))
+    mask[:, :barrier - offset] = 1
+    # 将掩码变成 3-通道的
+    left_mask = np.stack((mask, mask, mask), axis=2)
+    left_mask_img[0:left_height, 0:left_width, :] = left
+    left_mask_img = left_mask_img * left_mask
+
     mask2[:, barrier - offset:barrier + offset] = np.tile(np.linspace(0, 1, 2 * offset), (mix_height, 1))
     mask2[:, barrier + offset:] = 1
     right_mask = np.stack((mask2, mask2, mask2), axis=2)
 
-    # 透视变换
-    right_mask_img = cv2.warpPerspective(right, H, (mix_width, mix_height)) * right_mask
+    right_mask_img = right_mask_img * right_mask
+    cv2.imwrite("check.jpg", right_mask_img)  # 写入文件
     # 合并左图和右图
+    cv2.imwrite("left.jpg", left_mask_img)  # 写入文件
     mix_img = left_mask_img + right_mask_img
     # 裁剪掉右侧的黑边
     rows, cols = np.where(mix_img[:, :, 0] != 0)
