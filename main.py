@@ -16,8 +16,8 @@ img_seq = input("Enter the image sequence:")
 while int(img_seq) < 1 or int(img_seq) > 4:
     print("Error: image sequence should be 1,2,3,4. ")
     img_seq = input("Enter the image sequence:")
-img1_path = "./smaller_imgs/left" + img_seq + ".jpg"
-img2_path = "./smaller_imgs/right" + img_seq + ".jpg"
+img1_path = "./images/left" + img_seq + ".jpg"
+img2_path = "./images/right" + img_seq + ".jpg"
 print(f'Deal with {img1_path} and {img2_path} ...')
 sift_test = 1
 image_stitching = 2
@@ -75,52 +75,12 @@ if model is image_stitching:
     mix_width = left_width + right_width
     # 计算左侧图片及其掩码
     left_mask_img = np.zeros((mix_height, mix_width, 3))
-    # 过渡区域大小设置为20
-    # offset = 600  # smoothing window size / 2
-    # barrier = left_width - offset
-    # mask = np.zeros((mix_height, mix_width))
-    # # 过渡区域
-    # mask[:, barrier - offset:barrier + offset] = np.tile(np.linspace(1, 0, 2 * offset), (mix_height, 1))
-    # mask[:, :barrier - offset] = 1
-    # # 将掩码变成 3-通道的
-    # left_mask = np.stack((mask, mask, mask), axis=2)
-    # left_mask_img[0:left_height, 0:left_width, :] = left
-    # left_mask_img = left_mask_img * left_mask
-    # 右侧图片及其掩码
-    right_hsv = func.rgb2hsv(right)
-    right_hsv = cv2.cvtColor(right, cv2.COLOR_BGR2HSV)
-    right_v = func.computeV(right_hsv)
-    # left_hsv = func.rgb2hsv(left)
-    left_hsv = cv2.cvtColor(left, cv2.COLOR_BGR2HSV)
-    left_v = func.computeV(left_hsv)
-    bright_k = left_v / right_v
-    # # bright_k = (bright_k - 1) / 2 + 1
+    bright_k = func.compute_ratio_V(left, right)
     print(f"k is {bright_k}")
-    # h, s, v = cv2.split(right_hsv)
-    # v = np.asarray(v, dtype="float32")
-    # v = v / bright_k
-    # v_new = np.round(v)
-    # v_new = np.where(v_new > 255, 255, v_new)
-    # v_new = np.where(v_new < 0, 0, v_new)
-    # v_new = np.asarray(v_new, dtype="uint8")
-    # right_hsv = cv2.merge([h, s, v_new])
-    # right = cv2.cvtColor(right_hsv, cv2.COLOR_HSV2BGR)
-
-    # infer_map = func.get_infer_map(left)
-    # right = func.get_new_img(right, infer_map)
-
-    # right = func.style_transfer(right, left)
-
     mask2 = np.zeros((mix_height, mix_width))
-    # mask2[:, barrier - offset:barrier + offset] = np.tile(np.linspace(0, 1, 2 * offset), (mix_height, 1))
-    # mask2[:, barrier + offset:] = 1
-    # right_mask = np.stack((mask2, mask2, mask2), axis=2)
-
     # 透视变换
-    # right_mask_img = cv2.warpPerspective(right, H, (mix_width, mix_height)) * right_mask
     right_mask_img = cv2.warpPerspective(right, H, (mix_width, mix_height))
-    # cv2.imshow("11", right_mask_img)
-    # cv2.imwrite("check.jpg", right_mask_img)  # 写入文件
+    # cv2.imwrite("./middle_res/right_mask.jpg", right_mask_img)  # 写入文件
     zero_test = np.nonzero(right_mask_img)
     min_index = zero_test[0][0]
     row, col = np.where(right_mask_img[:, :, 0] == 0)
@@ -151,15 +111,14 @@ if model is image_stitching:
     right_mask = np.stack((mask2, mask2, mask2), axis=2)
 
     right_mask_img = right_mask_img * right_mask
-    cv2.imwrite("check.jpg", right_mask_img)  # 写入文件
+    # cv2.imwrite("right.jpg", right_mask_img)  # 写入文件
     # 合并左图和右图
-    cv2.imwrite("left.jpg", left_mask_img)  # 写入文件
+    # cv2.imwrite("left.jpg", left_mask_img)  # 写入文件
     mix_img = left_mask_img + right_mask_img
     # 裁剪掉右侧的黑边
     rows, cols = np.where(mix_img[:, :, 0] != 0)
     output_img = mix_img[min(rows):max(rows), min(cols):max(cols), :]
     # 显示输出图像
-
     result_path = "./result/output" + img_seq + ".jpg"
     cv2.imwrite(result_path, output_img)  # 写入文件
     print(f"The final result is {result_path}")
@@ -167,12 +126,14 @@ if model is image_stitching:
 # 测试SIFT特征点检测是否正常
 elif model is sift_test:
     # 读入图像
-    left = cv2.imread("./smaller_imgs/small.jpg")
+    left = cv2.imread("./images/left1.jpg")
     sift = mysift.MySift()
+    # sift = cv2.SIFT_create()
     left_kp, left_feature = sift.detectAndCompute(left, None)  # numpy.ndarray，二维列表， x*128
     cv2.drawKeypoints(left, left_kp, left)
-    cv2.imshow('final output', left)  # 显示图片
+    cv2.imwrite("./middle_res/sift.jpg", left)  # 写入文件
     cv2.waitKey(0)
+
 
 print("==============================")
 
