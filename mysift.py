@@ -155,13 +155,6 @@ class MySift:
             # print("finish extrema")
         # 对重复项进行排序和删除
         keypoints = removeDuplicateSorted(keypoints)
-
-        # if self.double_img_size:
-        #     # 将关键点从基础图像坐标转换为输入图像坐标，通过将相关属性减半实现
-        #     for keypoint in keypoints:
-        #         keypoint.pt = 0.5 * np.array(keypoint.pt)
-        #         keypoint.size *= 0.5
-        #         keypoint.octave = (keypoint.octave & ~255) | ((keypoint.octave - 1) & 255)
         # 生成描述符
         descriptors = self.calcSIFTDescriptors(keypoints, gaussian_imgs)
         # descriptors = np.array(descriptors)
@@ -267,7 +260,6 @@ class MySift:
         return kp_info
 
     def isScaleSpaceExtrema(self, img1, img2, img3, i, j):
-        # threshold = floor(0.5 ∗ contrast_threshold ∗ 255 ∗ SIFT_FIXPT_SCALE / nLayers)
         # 数据类型转换时已经缩放到1/255
         # 判断是否为极值点
         threshold = np.floor(0.5 * self.const_threshold / self.num_intervals * 255)
@@ -466,7 +458,6 @@ class MySift:
         # sigma为当前特征点的尺度值
         # 考虑到实际计算时，需要采用双线性插值，计算的图像区域为3sigma*(4+1)
         # 考虑旋转，应再乘根号2
-        # scale_multiplier = 3
         descriptor_max_value = 0.2
         descriptors = []
 
@@ -474,7 +465,6 @@ class MySift:
             # 提取当前特征点的所在层/组/尺度
             octave, layer, scale = unpackOctave(keypoint)
             gaussian_image = gaussian_images[octave + 1, layer]
-            num_rows, num_cols = gaussian_image.shape
             point = np.round(scale * np.array(keypoint.pt)).astype('int')
             # attention，计算角度
             angle = 360. - keypoint.angle
