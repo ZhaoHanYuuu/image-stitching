@@ -123,7 +123,7 @@ if model is image_stitching:
     # 显示输出图像
     result_path = "./result/output" + img_seq + ".jpg"
     cv2.imwrite(result_path, output_img)  # 写入文件
-    print(f"The final result is {result_path}")
+
 
 # 测试SIFT特征点检测是否正常
 elif model is sift_test:

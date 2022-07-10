@@ -174,7 +174,7 @@ class MySift:
 
     def buildGaussianPyramid(self, image):
         print("    begin: build gaussian pyramid ... ")
-        octaves_num = int(np.log2(min(image.shape[0], image.shape[1])) - 2)  # 减2为了防止降采样过程中得到过小的函数
+        octaves_num = int(np.log2(min(image.shape[0], image.shape[1])) - 2)  # 减2为了防止降采样过程中得到过小的图像
         gaussian_kernels = self.computeGaussianKernel()
         # 生成高斯图像，创建尺度空间金字塔
         gaussian_imgs = []
