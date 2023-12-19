@@ -1,8 +1,5 @@
 """
 main中用到的一些函数
-
-杜昱 2019K8009929015
-duyu19@mails.ucas.ac.cn
 """
 import cv2
 import numpy as np
