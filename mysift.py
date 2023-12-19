@@ -1,8 +1,5 @@
 """
 sift算法具体实现
-
-杜昱 2019K8009929015
-duyu19@mails.ucas.ac.cn
 """
 
 import numpy as np
