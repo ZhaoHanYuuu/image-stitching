@@ -1,8 +1,5 @@
 """
 UTF-8
-中国科学院大学 数组图像处理2022 大作业-基础组-图像拼接
-杜昱 2019K8009929015
-duyu19@mails.ucas.ac.cn
 """
 import numpy as np
 import cv2
